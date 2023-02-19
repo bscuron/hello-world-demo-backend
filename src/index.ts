@@ -7,13 +7,55 @@ const cors = require('cors');
 const mysql = require('mysql');
 
 // Connect to the database
-const connection = mysql.createConnection({
-  host     : process.env.DB_HOST,
-  user     : process.env.DB_USER,
-  password : process.env.DB_PASSWORD,
-  database : process.env.DB_NAME
-});
-connection.connect(); // TODO: make sure connection succeeded
+const db_config = {
+    host     : process.env.DB_HOST,
+    user     : process.env.DB_USER,
+    password : process.env.DB_PASSWORD,
+    database : process.env.DB_NAME
+};
+
+// Database connection
+let connection;
+
+// Function that connects to the MySQL database. Automatically tries to reconnect if connection is lost.
+function handle_disconnect() {
+    console.log('LOG: Connecting to database...');
+    connection = mysql.createConnection(db_config);
+
+    // Attempt to connect to database
+    connection.connect(function(err) {
+
+        // Failed to connect
+        if(err) {
+            console.log('ERROR: Failed to connect to database: ', err);
+            setTimeout(handle_disconnect, 500);
+        }
+
+        // Connection succeeded
+        else {
+            console.log('SUCCESS: Connected to database')
+        }
+
+    });
+
+    // Error handler
+    connection.on('error', function(err) {
+
+	    // Lost connection to the database, attempt to reconnect
+        if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.log('WARNING: Database connection lost');
+            handle_disconnect();
+        }
+
+        // Throw error not related to connection lost
+        else {
+            throw err;
+        }
+    });
+}
+
+// Try to establish a connection to the database
+handle_disconnect();
 
 // Create express application
 const app = express();
@@ -41,5 +83,5 @@ app.get('/message', (req, res) => {
 // Start the server, listen for requests on port 8000
 // TODO: create variable for port
 app.listen(8000, () => {
-  console.log(`Server is running on port 8000.`);
+    console.log(`LOG: Server is running on port 8000`);
 });
