@@ -8,10 +8,10 @@ const mysql = require('mysql');
 
 // Connect to the database
 const db_config = {
-    host     : process.env.DB_HOST,
-    user     : process.env.DB_USER,
-    password : process.env.DB_PASSWORD,
-    database : process.env.DB_NAME
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 };
 
 // Database connection
@@ -23,26 +23,23 @@ function handle_disconnect() {
     connection = mysql.createConnection(db_config);
 
     // Attempt to connect to database
-    connection.connect(function(err) {
-
+    connection.connect((err) => {
         // Failed to connect
-        if(err) {
+        if (err) {
             console.log('ERROR: Failed to connect to database: ', err);
             setTimeout(handle_disconnect, 500);
         }
 
         // Connection succeeded
         else {
-            console.log('SUCCESS: Connected to database')
+            console.log('SUCCESS: Connected to database');
         }
-
     });
 
     // Error handler
-    connection.on('error', function(err) {
-
-	    // Lost connection to the database, attempt to reconnect
-        if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+    connection.on('error', (err) => {
+        // Lost connection to the database, attempt to reconnect
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
             console.log('WARNING: Database connection lost');
             handle_disconnect();
         }
@@ -68,13 +65,12 @@ app.use(express.json());
 
 // Create a GET route
 app.get('/message', (req, res) => {
-
     // Query the database
-    connection.query('SELECT * FROM Members', function (error, results, fields) {
+    connection.query('SELECT * FROM Members', (error, results, fields) => {
         if (error) throw error;
         let str = '';
-        for(let row of results) {
-            str += `ID: ${row.id}, FIRST_NAME: ${row.first_name}, LAST_NAME: ${row.last_name}\n`
+        for (let row of results) {
+            str += `ID: ${row.id}, FIRST_NAME: ${row.first_name}, LAST_NAME: ${row.last_name}\n`;
         }
         res.json({ message: str });
     });
