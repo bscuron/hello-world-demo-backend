@@ -63,16 +63,33 @@ app.use(cors());
 // Parse the incoming requests with JSON payloads
 app.use(express.json());
 
-// Create a GET route
-app.get('/message', (req, res) => {
-    // Query the database
-    connection.query('SELECT * FROM Members', (error, results, fields) => {
-        if (error) throw error;
-        let str = '';
-        for (let row of results) {
-            str += `ID: ${row.id}, FIRST_NAME: ${row.first_name}, LAST_NAME: ${row.last_name}\n`;
+// Create a POST route
+app.post('/signup', (req, res) => {
+    const username: string = req.body.username;
+    const email: string = req.body.email;
+    const password: string = req.body.password;
+
+    // TODO: better validate user data and secure password
+    if (username.length < 1 || email.length < 1 || password.length < 1) return;
+
+    // Insert entry into database
+    connection.query(
+        'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)',
+        [username, email, password],
+        (error, results, fields) => {
+            if (error) throw error;
+            res.json({ message: 'Account Created!' });
         }
-        res.json({ message: str });
+    );
+});
+
+// TODO: remove this route (just returns database contents)
+// Create a GET route
+app.get('/database', (req, res) => {
+    // Query the database
+    connection.query('SELECT * FROM Users', (error, results, fields) => {
+        if (error) throw error;
+        res.json({ rows: results });
     });
 });
 
